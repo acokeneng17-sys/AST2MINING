@@ -305,17 +305,6 @@
                 <button class="btn-secondary" onclick="startTask('x-follow', 'https://x.com/Asteroid2Shiba', 3)">Start</button>
             </div>
 
-            <div class="task-item" id="task-x-rt">
-                <div class="task-info">
-                    <i class="fa-brands fa-x-twitter"></i>
-                    <div>
-                        <h4>Like & Repost X Post</h4>
-                        <p style="font-size:11px; color:var(--text-muted);">Latest Post</p>
-                    </div>
-                </div>
-                <button class="btn-secondary" onclick="startTask('x-rt', 'https://x.com/Asteroid2Shiba/status/2097965210137206802', 3)">Start</button>
-            </div>
-
             <div class="task-item" id="task-tg">
                 <div class="task-info">
                     <i class="fa-brands fa-telegram"></i>
@@ -448,8 +437,8 @@
             }
             document.getElementById("profile-id").innerText = userTelegramId;
 
-            // Generate unique referral link based on user Telegram ID
-            const botUsername = "ast2mining_bot"; // Sesuaikan dengan username bot Anda jika berbeda
+            // Pastikan username bot disesuaikan dengan yang aktif di BotFather
+            const botUsername = "ast2mining_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
             document.getElementById("invite-link").value = refLink;
 
@@ -647,13 +636,10 @@
             alert(`Success! +${reward} AST2 added to your balance.`);
         }
 
-        // Fungsi asli untuk membuka menu Share Telegram agar bisa mengundang member nyata
         function shareInviteLink() {
             const inviteUrl = document.getElementById("invite-link").value;
             const text = encodeURIComponent("🚀 Join Asteroid2Shiba Mining Community, mine AST2 tokens, and connect your TON wallet now!");
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${text}`;
-            
-            // Membuka jendela share Telegram bawaan
             window.open(shareUrl, '_blank');
         }
 
