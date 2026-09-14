@@ -269,7 +269,7 @@
                         <p style="font-size:11px; color:var(--text-muted);">tiktok.com/@asteroid2shiba</p>
                     </div>
                 </div>
-                <button class="btn-secondary" onclick="startTask('tiktok', 'https://tiktok.com/@asteroid2shiba', 3)">Start</button>
+                <button class="btn-secondary" id="btn-task-tiktok" onclick="startTask('tiktok', 'https://tiktok.com/@asteroid2shiba', 3)">Start</button>
             </div>
 
             <div class="task-item" id="task-x-follow">
@@ -280,7 +280,7 @@
                         <p style="font-size:11px; color:var(--text-muted);">x.com/Asteroid2Shiba</p>
                     </div>
                 </div>
-                <button class="btn-secondary" onclick="startTask('x-follow', 'https://x.com/Asteroid2Shiba', 3)">Start</button>
+                <button class="btn-secondary" id="btn-task-x-follow" onclick="startTask('x-follow', 'https://x.com/Asteroid2Shiba', 3)">Start</button>
             </div>
 
             <div class="task-item" id="task-tg">
@@ -291,7 +291,7 @@
                         <p style="font-size:11px; color:var(--text-muted);">t.me/asteroid2shiba</p>
                     </div>
                 </div>
-                <button class="btn-secondary" onclick="startTask('tg', 'https://t.me/asteroid2shiba', 3)">Start</button>
+                <button class="btn-secondary" id="btn-task-tg" onclick="startTask('tg', 'https://t.me/asteroid2shiba', 3)">Start</button>
             </div>
 
             <div class="task-item" id="task-yt">
@@ -302,7 +302,7 @@
                         <p style="font-size:11px; color:var(--text-muted);">youtube.com/@asteroid2shiba</p>
                     </div>
                 </div>
-                <button class="btn-secondary" onclick="startTask('yt', 'https://www.youtube.com/@asteroid2shiba', 3)">Start</button>
+                <button class="btn-secondary" id="btn-task-yt" onclick="startTask('yt', 'https://www.youtube.com/@asteroid2shiba', 3)">Start</button>
             </div>
         </section>
 
@@ -408,7 +408,8 @@
             friends: [],
             tonWallet: null,
             targetTimestamp: null,
-            lastWithdrawTime: 0
+            lastWithdrawTime: 0,
+            completedTasks: [] // Menyimpan daftar tugas yang sudah selesai
         };
 
         let timerInterval;
@@ -429,6 +430,7 @@
             renderUI();
             renderLevels();
             renderFriendsList();
+            renderTasksState(); // Memuat status tugas yang sudah selesai
             initPersistentTimer();
         });
 
@@ -634,9 +636,7 @@
         }
 
         function startTask(taskId, url, reward) {
-            const taskElement = document.getElementById(`task-${taskId}`);
-            const button = taskElement.querySelector("button");
-
+            const button = document.getElementById(`btn-task-${taskId}`);
             window.open(url, '_blank');
 
             let remaining = 15;
@@ -659,21 +659,37 @@
         }
 
         function claimTaskReward(taskId, reward) {
+            // Catat tugas ke dalam memori permanen agar tidak bisa diulang
+            if (!userState.completedTasks) {
+                userState.completedTasks = [];
+            }
+            if (!userState.completedTasks.includes(taskId)) {
+                userState.completedTasks.push(taskId);
+            }
+
             userState.balance += reward;
             saveState();
             renderUI();
             renderLevels();
-
-            const taskElement = document.getElementById(`task-${taskId}`);
-            const button = taskElement.querySelector("button");
-            button.innerText = "Completed ✓";
-            button.disabled = true;
-            button.style.background = "#27ae60";
-            button.style.color = "white";
-            button.style.opacity = "1";
-            button.removeAttribute("onclick");
+            renderTasksState();
 
             alert(`Success! +${reward} AST2 added to your balance.`);
+        }
+
+        function renderTasksState() {
+            if (!userState.completedTasks) return;
+
+            userState.completedTasks.forEach(taskId => {
+                const button = document.getElementById(`btn-task-${taskId}`);
+                if (button) {
+                    button.innerText = "Completed ✓";
+                    button.disabled = true;
+                    button.style.background = "#27ae60";
+                    button.style.color = "white";
+                    button.style.opacity = "1";
+                    button.removeAttribute("onclick");
+                }
+            });
         }
 
         function shareInviteLink() {
