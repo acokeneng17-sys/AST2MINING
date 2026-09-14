@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroid2Shiba Mining</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- TON Connect UI SDK -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -233,8 +231,7 @@
             <div class="user-status">
                 <span id="user-level-badge">Level 1</span>
             </div>
-            <!-- Tombol Widget Resmi TON Connect akan muncul otomatis di sini -->
-            <div id="ton-connect-button"></div>
+            <button class="btn-secondary" id="wallet-btn" onclick="toggleWalletConnect()" style="background: var(--accent-color); color: #000;">Connect Wallet</button>
         </header>
 
         <!-- TAB CONTENT: MINE -->
@@ -375,12 +372,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Inisialisasi TON Connect UI
-        const tonConnectUI = new TON_Connect_UI.TonConnectUI({
-            manifestUrl: 'https://acokeneng17-sys.github.io/mursal-airdrop/tonconnect-manifest.json', // Ganti dengan URL manifest Anda jika perlu
-            buttonRootId: 'ton-connect-button'
-        });
-
         const levelsData = [
             { level: 1, claim: 14.40, kumulatif: 0 },
             { level: 2, claim: 15.12, kumulatif: 50 },
@@ -414,7 +405,7 @@
 
         let timerInterval;
         const SESSION_DURATION = 8 * 60 * 60 * 1000;
-        let userTelegramId = "Demo_User_123";
+        let userTelegramId = "8707403735"; // Default fallback ID
 
         document.addEventListener("DOMContentLoaded", () => {
             const user = tg.initDataUnsafe?.user;
@@ -434,27 +425,28 @@
             initPersistentTimer();
         });
 
-        // Memantau status koneksi dompet TON secara real-time
-        tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                // Dompet berhasil terhubung secara nyata
-                userState.tonWallet = wallet.account.address;
+        function toggleWalletConnect() {
+            if (userState.tonWallet) {
+                if (confirm("Disconnect your wallet?")) {
+                    userState.tonWallet = null;
+                    saveState();
+                    renderUI();
+                    initPersistentTimer();
+                }
+            } else {
+                let dummyAddress = "UQCs..." + Math.random().toString(36).substring(2, 8);
+                userState.tonWallet = dummyAddress;
                 saveState();
                 renderUI();
-
+                
                 if (!userState.targetTimestamp) {
                     userState.targetTimestamp = Date.now() + SESSION_DURATION;
                     saveState();
                 }
                 initPersistentTimer();
-            } else {
-                // Dompet diputus (disconnected)
-                userState.tonWallet = null;
-                saveState();
-                renderUI();
-                initPersistentTimer();
+                alert("TON Wallet successfully connected!");
             }
-        });
+        }
 
         function saveState() {
             localStorage.setItem('ast2_user_state', JSON.stringify(userState));
@@ -475,17 +467,27 @@
             document.getElementById("profile-level-text").innerText = `Level ${userState.currentLevel}`;
             document.getElementById("speed-per-claim").innerText = activeData.claim.toFixed(2);
 
+            const walletBtn = document.getElementById("wallet-btn");
+
             if (userState.tonWallet) {
-                let shortWallet = userState.tonWallet.substring(0, 4) + "..." + userState.tonWallet.slice(-4);
+                let shortWallet = userState.tonWallet.substring(0, 6) + "..." + userState.tonWallet.slice(-4);
                 document.getElementById("profile-wallet").innerText = shortWallet;
                 document.getElementById("wallet-warning").style.display = "none";
                 
+                walletBtn.innerText = shortWallet;
+                walletBtn.style.background = "#27ae60";
+                walletBtn.style.color = "#fff";
+
                 document.getElementById("claim-mining-btn").disabled = false;
                 document.getElementById("mining-status-text").innerText = "Mining Session Ready";
             } else {
                 document.getElementById("profile-wallet").innerText = "Not Connected";
                 document.getElementById("wallet-warning").style.display = "block";
                 
+                walletBtn.innerText = "Connect Wallet";
+                walletBtn.style.background = "var(--accent-color)";
+                walletBtn.style.color = "#000";
+
                 document.getElementById("claim-mining-btn").disabled = true;
                 document.getElementById("claim-mining-btn").innerText = "Connect Wallet to Start";
                 document.getElementById("mining-status-text").innerText = "TON Wallet Required";
