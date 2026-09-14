@@ -338,7 +338,14 @@
                 <p><strong>Current Level:</strong> <span id="profile-level-text">Level 1</span></p>
                 <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
             </div>
-            <button class="btn-primary" style="margin-top: 20px;" onclick="alert('TON Jetton withdrawal feature coming soon!')">Withdraw to TON Wallet</button>
+
+            <!-- WITHDRAWAL BOX -->
+            <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
+                <h4>Withdraw AST2 Token</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">Min: 500 AST2 | Max: 1,000,000 AST2 (Once per day)</p>
+                <input type="number" id="withdraw-amount" placeholder="Enter amount (Min 500)" style="width: 100%; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 12px;">
+                <button class="btn-primary" onclick="requestWithdrawal()">Submit Withdrawal</button>
+            </div>
         </section>
 
         <!-- BOTTOM NAVIGATION -->
@@ -400,12 +407,13 @@
             currentLevel: 1,
             friends: [],
             tonWallet: null,
-            targetTimestamp: null
+            targetTimestamp: null,
+            lastWithdrawTime: 0
         };
 
         let timerInterval;
         const SESSION_DURATION = 8 * 60 * 60 * 1000;
-        let userTelegramId = "8707403735"; // Default fallback ID
+        let userTelegramId = "8707403735";
 
         document.addEventListener("DOMContentLoaded", () => {
             const user = tg.initDataUnsafe?.user;
@@ -414,7 +422,6 @@
             }
             document.getElementById("profile-id").innerText = userTelegramId;
 
-            // Menggunakan username bot yang benar dari BotFather
             const botUsername = "ast2geminites_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
             document.getElementById("invite-link").value = refLink;
@@ -584,6 +591,46 @@
             } else {
                 alert("Insufficient cumulative balance to upgrade this level.");
             }
+        }
+
+        function requestWithdrawal() {
+            let amount = parseFloat(document.getElementById("withdraw-amount").value);
+            
+            if (!userState.tonWallet) {
+                alert("Please connect your TON wallet first!");
+                return;
+            }
+
+            let now = Date.now();
+            let oneDayMillis = 24 * 60 * 60 * 1000;
+            if (userState.lastWithdrawTime && (now - userState.lastWithdrawTime < oneDayMillis)) {
+                let remainingHours = Math.ceil((oneDayMillis - (now - userState.lastWithdrawTime)) / (1000 * 60 * 60));
+                alert(`You can only withdraw once a day. Please try again in about ${remainingHours} hours.`);
+                return;
+            }
+
+            if (isNaN(amount) || amount < 500) {
+                alert("Minimum withdrawal amount is 500 AST2!");
+                return;
+            }
+
+            if (amount > 1000000) {
+                alert("Maximum withdrawal amount is 1,000,000 AST2 per transaction!");
+                return;
+            }
+            
+            if (amount > userState.balance) {
+                alert("Insufficient balance!");
+                return;
+            }
+            
+            userState.balance -= amount;
+            userState.lastWithdrawTime = now;
+            saveState();
+            renderUI();
+            
+            document.getElementById("withdraw-amount").value = "";
+            alert(`Success! Withdrawal request for ${amount} AST2 has been submitted to your wallet: ${userState.tonWallet}`);
         }
 
         function startTask(taskId, url, reward) {
