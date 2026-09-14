@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroid2Shiba Mining</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- TON Connect UI SDK -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -51,26 +53,6 @@
             font-size: 14px;
             font-weight: bold;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .wallet-connect-btn {
-            background: #0088cc;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .wallet-connected {
-            background: rgba(72, 202, 228, 0.15);
-            color: var(--accent-color);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            border: 1px solid var(--accent-color);
         }
 
         .tab-content {
@@ -251,9 +233,8 @@
             <div class="user-status">
                 <span id="user-level-badge">Level 1</span>
             </div>
-            <div id="wallet-header-container">
-                <button class="wallet-connect-btn" onclick="connectTonWallet()">Connect TON Wallet</button>
-            </div>
+            <!-- Tombol Widget Resmi TON Connect akan muncul otomatis di sini -->
+            <div id="ton-connect-button"></div>
         </header>
 
         <!-- TAB CONTENT: MINE -->
@@ -265,7 +246,7 @@
             </div>
 
             <div class="warning-box" id="wallet-warning">
-                ⚠️ Please connect your official TON Wallet to unlock mining and secure your 1 Account / 1 Wallet binding!
+                ⚠️ Please connect your official TON Wallet to unlock mining and secure your account!
             </div>
 
             <div class="mining-card">
@@ -281,7 +262,7 @@
         <!-- TAB CONTENT: TASKS -->
         <section id="tab-tasks" class="tab-content">
             <h2>Social Tasks</h2>
-            <p class="subtitle">Complete tasks to earn +3 AST2 per task. Anti-cheat verified.</p>
+            <p class="subtitle">Complete tasks to earn +3 AST2 per task.</p>
             
             <div class="task-item" id="task-tiktok">
                 <div class="task-info">
@@ -359,7 +340,6 @@
                 <p><strong>Connected TON Wallet:</strong> <span id="profile-wallet" style="color: var(--accent-color);">Not Connected</span></p>
                 <p><strong>Current Level:</strong> <span id="profile-level-text">Level 1</span></p>
                 <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
-                <p><strong>Security Status:</strong> <span style="color: #2ecc71;">Anti-VPN & 1 IP Verified ✓</span></p>
             </div>
             <button class="btn-primary" style="margin-top: 20px;" onclick="alert('TON Jetton withdrawal feature coming soon!')">Withdraw to TON Wallet</button>
         </section>
@@ -394,6 +374,12 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        // Inisialisasi TON Connect UI
+        const tonConnectUI = new TON_Connect_UI.TonConnectUI({
+            manifestUrl: 'https://acokeneng17-sys.github.io/mursal-airdrop/tonconnect-manifest.json', // Ganti dengan URL manifest Anda jika perlu
+            buttonRootId: 'ton-connect-button'
+        });
 
         const levelsData = [
             { level: 1, claim: 14.40, kumulatif: 0 },
@@ -437,16 +423,37 @@
             }
             document.getElementById("profile-id").innerText = userTelegramId;
 
-            // Pastikan username bot disesuaikan dengan yang aktif di BotFather
-            const botUsername = "ast2mining_bot"; 
+            // Menggunakan username bot yang benar dari BotFather
+            const botUsername = "ast2geminites_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
             document.getElementById("invite-link").value = refLink;
 
-            checkWalletState();
             renderUI();
             renderLevels();
             renderFriendsList();
             initPersistentTimer();
+        });
+
+        // Memantau status koneksi dompet TON secara real-time
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                // Dompet berhasil terhubung secara nyata
+                userState.tonWallet = wallet.account.address;
+                saveState();
+                renderUI();
+
+                if (!userState.targetTimestamp) {
+                    userState.targetTimestamp = Date.now() + SESSION_DURATION;
+                    saveState();
+                }
+                initPersistentTimer();
+            } else {
+                // Dompet diputus (disconnected)
+                userState.tonWallet = null;
+                saveState();
+                renderUI();
+                initPersistentTimer();
+            }
         });
 
         function saveState() {
@@ -469,36 +476,20 @@
             document.getElementById("speed-per-claim").innerText = activeData.claim.toFixed(2);
 
             if (userState.tonWallet) {
-                document.getElementById("wallet-header-container").innerHTML = `<span class="wallet-connected">🔗 ${userState.tonWallet.substring(0, 4)}...${userState.tonWallet.slice(-4)}</span>`;
-                document.getElementById("profile-wallet").innerText = userState.tonWallet;
+                let shortWallet = userState.tonWallet.substring(0, 4) + "..." + userState.tonWallet.slice(-4);
+                document.getElementById("profile-wallet").innerText = shortWallet;
                 document.getElementById("wallet-warning").style.display = "none";
+                
+                document.getElementById("claim-mining-btn").disabled = false;
+                document.getElementById("mining-status-text").innerText = "Mining Session Ready";
             } else {
-                document.getElementById("wallet-header-container").innerHTML = `<button class="wallet-connect-btn" onclick="connectTonWallet()">Connect TON Wallet</button>`;
                 document.getElementById("profile-wallet").innerText = "Not Connected";
                 document.getElementById("wallet-warning").style.display = "block";
-            }
-        }
-
-        function checkWalletState() {
-            if (!userState.tonWallet) {
+                
                 document.getElementById("claim-mining-btn").disabled = true;
                 document.getElementById("claim-mining-btn").innerText = "Connect Wallet to Start";
                 document.getElementById("mining-status-text").innerText = "TON Wallet Required";
             }
-        }
-
-        function connectTonWallet() {
-            let sampleWallet = "EQD" + Math.random().toString(36).substring(2, 12) + "AST2Wallet" + Math.floor(Math.random() * 1000);
-            userState.tonWallet = sampleWallet;
-            saveState();
-            renderUI();
-            
-            if (!userState.targetTimestamp) {
-                userState.targetTimestamp = Date.now() + SESSION_DURATION;
-                saveState();
-            }
-            initPersistentTimer();
-            alert("TON Wallet successfully connected & securely bound to your account!");
         }
 
         function renderLevels() {
