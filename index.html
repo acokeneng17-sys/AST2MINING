@@ -339,7 +339,7 @@
                 <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
             </div>
 
-            <!-- MANUAL WITHDRAWAL BOX -->
+            <!-- MANUAL WITHDRAWAL BOX (TERINTEGRASI SUPABASE) -->
             <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
                 <h4>Withdraw AST2 Token</h4>
                 <p style="font-size: 11px; color: var(--text-muted);">Min: 500 AST2 | Treasury: EQCO-...0vufNx</p>
@@ -348,7 +348,7 @@
                 
                 <input type="number" id="withdraw-amount" placeholder="Amount AST2 (Min 500)" style="width: 100%; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 12px;">
                 
-                <button class="btn-primary" onclick="requestManualWithdrawal()">Submit Withdrawal</button>
+                <button class="btn-primary" id="withdraw-submit-btn" onclick="requestManualWithdrawal()">Submit Withdrawal</button>
                 
                 <p style="font-size: 10px; color: var(--text-muted); text-align: center; line-height: 1.4; width: 100%; margin-top: 5px;">
                     ⚠️ Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.
@@ -384,6 +384,10 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // KREDENSIAL SUPABASE ANDA
+        const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
+
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -427,7 +431,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             const user = tg.initDataUnsafe?.user;
             if (user && user.id) {
-                userTelegramId = user.id;
+                userTelegramId = String(user.id);
             }
             document.getElementById("profile-id").innerText = userTelegramId;
 
@@ -603,7 +607,8 @@
             }
         }
 
-        function requestManualWithdrawal() {
+        // FUNGSI WITHDRAW MANUAL TERINTEGRASI SUPABASE
+        async function requestManualWithdrawal() {
             let address = document.getElementById("withdraw-address").value.trim();
             let amount = parseFloat(document.getElementById("withdraw-amount").value);
             
@@ -634,16 +639,53 @@
                 alert("Insufficient AST2 balance!");
                 return;
             }
-            
-            userState.balance -= amount;
-            userState.lastWithdrawTime = now;
-            saveState();
-            renderUI();
-            
-            document.getElementById("withdraw-address").value = "";
-            document.getElementById("withdraw-amount").value = "";
-            
-            alert("Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.");
+
+            // Ubah tombol jadi loading sementara
+            let submitBtn = document.getElementById("withdraw-submit-btn");
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting to Database...";
+
+            try {
+                // Kirim data ke Supabase REST API
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/withdrawals`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: userTelegramId,
+                        wallet_address: address,
+                        amount: amount,
+                        status: 'pending'
+                    })
+                });
+
+                if (response.ok) {
+                    // Potong saldo pengguna setelah berhasil masuk database
+                    userState.balance -= amount;
+                    userState.lastWithdrawTime = now;
+                    saveState();
+                    renderUI();
+                    
+                    document.getElementById("withdraw-address").value = "";
+                    document.getElementById("withdraw-amount").value = "";
+                    
+                    alert("Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.");
+                } else {
+                    const err = await response.json();
+                    console.error("Supabase Error:", err);
+                    alert("Failed to save withdrawal to database. Please try again later.");
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                alert("Network error connecting to database.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Withdrawal";
+            }
         }
 
         function startTask(taskId, url, reward) {
