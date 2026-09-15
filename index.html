@@ -53,6 +53,18 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
+        .user-pill {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .tab-content {
             flex: 1;
             overflow-y: auto;
@@ -210,17 +222,6 @@
             color: var(--text-muted);
             margin-bottom: 15px;
         }
-
-        .warning-box {
-            background: rgba(231, 76, 60, 0.15);
-            border: 1px solid #e74c3c;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            color: #ff9999;
-            margin-bottom: 15px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -229,9 +230,13 @@
         <!-- HEADER -->
         <header class="app-header">
             <div class="user-status">
-                <span id="user-level-badge">Level 1</span>
+                <span id="user-level-badge" style="background: rgba(72,202,228,0.1); color: var(--accent-color); padding: 5px 10px; border-radius: 8px; font-size: 12px;">Level 1</span>
             </div>
-            <button class="btn-secondary" id="wallet-btn" onclick="toggleWalletConnect()" style="background: var(--accent-color); color: #000;">Connect Wallet</button>
+            <!-- Diganti dengan Badge Telegram Username User -->
+            <div class="user-pill">
+                <i class="fa-solid fa-circle-user"></i>
+                <span id="header-username">Loading...</span>
+            </div>
         </header>
 
         <!-- TAB CONTENT: MINE -->
@@ -242,17 +247,13 @@
                 <p style="font-size: 11px; color: var(--accent-color);">Speed: <span id="speed-per-claim">14.40</span> AST2 / Session (8 Hours)</p>
             </div>
 
-            <div class="warning-box" id="wallet-warning">
-                ⚠️ Please connect your official TON Wallet to unlock mining and secure your account!
-            </div>
-
             <div class="mining-card">
                 <div class="mining-status-icon">
                     <i class="fa-solid fa-rocket" id="mining-icon"></i>
                 </div>
-                <p id="mining-status-text" style="font-size: 14px; color: var(--text-muted);">Connect TON Wallet First</p>
+                <p id="mining-status-text" style="font-size: 14px; color: var(--text-muted);">Mining Session Ready</p>
                 <div class="timer-display" id="timer-display">08:00:00</div>
-                <button id="claim-mining-btn" class="btn-primary" onclick="claimMining()" disabled>Connect Wallet to Start</button>
+                <button id="claim-mining-btn" class="btn-primary" onclick="claimMining()">Start Mining</button>
             </div>
         </section>
 
@@ -334,7 +335,7 @@
             <p class="subtitle">Account Security & Details</p>
             <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                 <p><strong>Telegram ID:</strong> <span id="profile-id">-</span></p>
-                <p><strong>Connected TON Wallet:</strong> <span id="profile-wallet" style="color: var(--accent-color);">Not Connected</span></p>
+                <p><strong>Telegram Username:</strong> <span id="profile-username" style="color: var(--accent-color);">-</span></p>
                 <p><strong>Current Level:</strong> <span id="profile-level-text">Level 1</span></p>
                 <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
             </div>
@@ -384,7 +385,6 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // KREDENSIAL SUPABASE ANDA
         const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
 
@@ -418,7 +418,6 @@
             balance: 0,
             currentLevel: 1,
             friends: [],
-            tonWallet: null,
             targetTimestamp: null,
             lastWithdrawTime: 0,
             completedTasks: []
@@ -427,13 +426,18 @@
         let timerInterval;
         const SESSION_DURATION = 8 * 60 * 60 * 1000;
         let userTelegramId = "8707403735";
+        let userDisplayTag = "Guest User";
 
         document.addEventListener("DOMContentLoaded", () => {
             const user = tg.initDataUnsafe?.user;
             if (user && user.id) {
                 userTelegramId = String(user.id);
+                userDisplayTag = user.username ? `@${user.username}` : (user.first_name || "User");
             }
+
+            document.getElementById("header-username").innerText = userDisplayTag;
             document.getElementById("profile-id").innerText = userTelegramId;
+            document.getElementById("profile-username").innerText = userDisplayTag;
 
             const botUsername = "ast2geminites_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
@@ -445,29 +449,6 @@
             renderTasksState();
             initPersistentTimer();
         });
-
-        function toggleWalletConnect() {
-            if (userState.tonWallet) {
-                if (confirm("Disconnect your wallet?")) {
-                    userState.tonWallet = null;
-                    saveState();
-                    renderUI();
-                    initPersistentTimer();
-                }
-            } else {
-                let dummyAddress = "EQCO..." + Math.random().toString(36).substring(2, 8);
-                userState.tonWallet = dummyAddress;
-                saveState();
-                renderUI();
-                
-                if (!userState.targetTimestamp) {
-                    userState.targetTimestamp = Date.now() + SESSION_DURATION;
-                    saveState();
-                }
-                initPersistentTimer();
-                alert("TON Wallet successfully connected!");
-            }
-        }
 
         function saveState() {
             localStorage.setItem('ast2_user_state', JSON.stringify(userState));
@@ -487,32 +468,6 @@
             document.getElementById("user-level-badge").innerText = `Level ${userState.currentLevel}`;
             document.getElementById("profile-level-text").innerText = `Level ${userState.currentLevel}`;
             document.getElementById("speed-per-claim").innerText = activeData.claim.toFixed(2);
-
-            const walletBtn = document.getElementById("wallet-btn");
-
-            if (userState.tonWallet) {
-                let shortWallet = userState.tonWallet.substring(0, 6) + "..." + userState.tonWallet.slice(-4);
-                document.getElementById("profile-wallet").innerText = shortWallet;
-                document.getElementById("wallet-warning").style.display = "none";
-                
-                walletBtn.innerText = shortWallet;
-                walletBtn.style.background = "#27ae60";
-                walletBtn.style.color = "#fff";
-
-                document.getElementById("claim-mining-btn").disabled = false;
-                document.getElementById("mining-status-text").innerText = "Mining Session Ready";
-            } else {
-                document.getElementById("profile-wallet").innerText = "Not Connected";
-                document.getElementById("wallet-warning").style.display = "block";
-                
-                walletBtn.innerText = "Connect Wallet";
-                walletBtn.style.background = "var(--accent-color)";
-                walletBtn.style.color = "#000";
-
-                document.getElementById("claim-mining-btn").disabled = true;
-                document.getElementById("claim-mining-btn").innerText = "Connect Wallet to Start";
-                document.getElementById("mining-status-text").innerText = "TON Wallet Required";
-            }
         }
 
         function renderLevels() {
@@ -542,11 +497,6 @@
             if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
-                if (!userState.tonWallet) {
-                    document.getElementById("timer-display").innerText = "08:00:00";
-                    return;
-                }
-
                 if (!userState.targetTimestamp) {
                     userState.targetTimestamp = Date.now() + SESSION_DURATION;
                     saveState();
@@ -577,11 +527,6 @@
         }
 
         function claimMining() {
-            if (!userState.tonWallet) {
-                alert("Please connect your TON wallet first!");
-                return;
-            }
-
             let activeData = levelsData[userState.currentLevel - 1];
             userState.balance += activeData.claim;
             userState.targetTimestamp = Date.now() + SESSION_DURATION;
@@ -607,7 +552,6 @@
             }
         }
 
-        // FUNGSI WITHDRAW MANUAL TERINTEGRASI SUPABASE
         async function requestManualWithdrawal() {
             let address = document.getElementById("withdraw-address").value.trim();
             let amount = parseFloat(document.getElementById("withdraw-amount").value);
@@ -640,13 +584,11 @@
                 return;
             }
 
-            // Ubah tombol jadi loading sementara
             let submitBtn = document.getElementById("withdraw-submit-btn");
             submitBtn.disabled = true;
             submitBtn.innerText = "Submitting to Database...";
 
             try {
-                // Kirim data ke Supabase REST API
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/withdrawals`, {
                     method: 'POST',
                     headers: {
@@ -664,7 +606,6 @@
                 });
 
                 if (response.ok) {
-                    // Potong saldo pengguna setelah berhasil masuk database
                     userState.balance -= amount;
                     userState.lastWithdrawTime = now;
                     saveState();
@@ -746,7 +687,7 @@
 
         function shareInviteLink() {
             const inviteUrl = document.getElementById("invite-link").value;
-            const text = encodeURIComponent("🚀 Join Asteroid2Shiba Mining Community, mine AST2 tokens, and connect your TON wallet now!");
+            const text = encodeURIComponent("🚀 Join Asteroid2Shiba Mining Community, mine AST2 tokens, and start earning today!");
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${text}`;
             window.open(shareUrl, '_blank');
         }
