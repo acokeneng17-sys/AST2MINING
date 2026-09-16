@@ -232,7 +232,6 @@
             <div class="user-status">
                 <span id="user-level-badge" style="background: rgba(72,202,228,0.1); color: var(--accent-color); padding: 5px 10px; border-radius: 8px; font-size: 12px;">Level 1</span>
             </div>
-            <!-- Diganti dengan Badge Telegram Username User -->
             <div class="user-pill">
                 <i class="fa-solid fa-circle-user"></i>
                 <span id="header-username">Loading...</span>
@@ -260,8 +259,20 @@
         <!-- TAB CONTENT: TASKS -->
         <section id="tab-tasks" class="tab-content">
             <h2>Social Tasks</h2>
-            <p class="subtitle">Complete tasks to earn +3 AST2 per task.</p>
+            <p class="subtitle">Complete tasks to earn AST2 rewards.</p>
             
+            <!-- TUGAS BARU: X LIKE, COMMENT, & RETWEET -->
+            <div class="task-item" id="task-x-engage">
+                <div class="task-info">
+                    <i class="fa-brands fa-x-twitter"></i>
+                    <div>
+                        <h4>X: Like, Comment & Retweet</h4>
+                        <p style="font-size:11px; color:var(--text-muted);">Reward: +3 AST2</p>
+                    </div>
+                </div>
+                <button class="btn-secondary" id="btn-task-x-engage" onclick="startTask('x-engage', 'https://x.com/Asteroid2Shiba/status/2100268659210076220', 3)">Start</button>
+            </div>
+
             <div class="task-item" id="task-tiktok">
                 <div class="task-info">
                     <i class="fa-brands fa-tiktok"></i>
