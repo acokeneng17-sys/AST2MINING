@@ -227,7 +227,6 @@
 <body>
     <div class="app-container">
         
-        <!-- HEADER -->
         <header class="app-header">
             <div class="user-status">
                 <span id="user-level-badge" style="background: rgba(72,202,228,0.1); color: var(--accent-color); padding: 5px 10px; border-radius: 8px; font-size: 12px;">Level 1</span>
@@ -238,7 +237,6 @@
             </div>
         </header>
 
-        <!-- TAB CONTENT: MINE -->
         <section id="tab-mine" class="tab-content active">
             <div class="assets-box">
                 <p class="assets-title">TOTAL AST2 BALANCE</p>
@@ -256,12 +254,10 @@
             </div>
         </section>
 
-        <!-- TAB CONTENT: TASKS -->
         <section id="tab-tasks" class="tab-content">
             <h2>Social Tasks</h2>
             <p class="subtitle">Complete tasks to earn AST2 rewards.</p>
             
-            <!-- TUGAS BARU: X LIKE, COMMENT, & RETWEET -->
             <div class="task-item" id="task-x-engage">
                 <div class="task-info">
                     <i class="fa-brands fa-x-twitter"></i>
@@ -318,14 +314,12 @@
             </div>
         </section>
 
-        <!-- TAB CONTENT: MINERS -->
         <section id="tab-miners" class="tab-content">
             <h2>Level Journey</h2>
             <p class="subtitle">Upgrade your level to increase mining rewards</p>
             <div id="levels-container"></div>
         </section>
 
-        <!-- TAB CONTENT: FRIENDS -->
         <section id="tab-friends" class="tab-content">
             <h2>Invite Friends</h2>
             <p class="subtitle">Share your link and invite friends to join Asteroid2Shiba.</p>
@@ -340,7 +334,6 @@
             </ul>
         </section>
 
-        <!-- TAB CONTENT: PROFILE -->
         <section id="tab-profile" class="tab-content">
             <h2>User Profile</h2>
             <p class="subtitle">Account Security & Details</p>
@@ -351,7 +344,6 @@
                 <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
             </div>
 
-            <!-- MANUAL WITHDRAWAL BOX (TERINTEGRASI SUPABASE) -->
             <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
                 <h4>Withdraw AST2 Token</h4>
                 <p style="font-size: 11px; color: var(--text-muted);">Min: 500 AST2 | Treasury: EQCO-...0vufNx</p>
@@ -368,7 +360,6 @@
             </div>
         </section>
 
-        <!-- BOTTOM NAVIGATION -->
         <nav class="bottom-nav">
             <button class="nav-item active" onclick="switchTab('mine', this)">
                 <i class="fa-solid fa-gem"></i>
@@ -394,7 +385,6 @@
 
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
         const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
@@ -606,10 +596,10 @@
                         'Content-Type': 'application/json',
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Prefer': 'return=minimal'
+                        'Prefer': 'return=representation'
                     },
                     body: JSON.stringify({
-                        telegram_id: userTelegramId,
+                        telegram_id: String(userTelegramId),
                         wallet_address: address,
                         amount: amount,
                         status: 'pending'
@@ -628,8 +618,8 @@
                     alert("Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.");
                 } else {
                     const err = await response.json();
-                    console.error("Supabase Error:", err);
-                    alert("Failed to save withdrawal to database. Please try again later.");
+                    console.error("Supabase Error Details:", err);
+                    alert("Error: " + (err.message || "Failed to save withdrawal to database."));
                 }
             } catch (error) {
                 console.error("Network Error:", error);
