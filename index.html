@@ -3,271 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ast2 Mining App</title>
+    <title>Asteroid2Shiba (AST2) Mining</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Firebase SDK (Compat Version) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .navbar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #f3ba2f;
-        }
-        .logo-container {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            border: 4px solid #f3ba2f;
-            overflow: hidden;
-            box-shadow: 0 0 25px rgba(243, 186, 47, 0.4);
-            margin-bottom: 15px;
-            background: #131e30;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .logo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .status-box {
-            background: rgba(0, 255, 204, 0.1);
-            border: 1px solid #00ffcc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: #00ffcc;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 15px;
-        }
-        .menu-btn {
-            background: linear-gradient(135deg, #131e30, #1c2d4a);
-            border: 1.5px solid #f3ba2f;
-            border-radius: 12px;
-            padding: 12px 5px;
-            text-align: center;
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 75px;
-        }
-        .balance-card {
-            background: linear-gradient(135deg, #131e30, #1a2840);
-            border: 2px solid #f3ba2f;
-            border-radius: 16px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .balance-title {
-            font-size: 13px;
-            color: #a0aec0;
-            margin-bottom: 5px;
-        }
-        .balance-number {
-            font-size: 36px;
-            font-weight: 900;
-            color: #f3ba2f;
-        }
-        .balance-token {
-            font-size: 14px;
-            color: #f3ba2f;
-            font-weight: bold;
-            margin-top: 2px;
-        }
-        .info-box {
-            background: rgba(19, 30, 48, 0.9);
-            border: 1px solid #3182ce;
-            border-radius: 12px;
-            padding: 12px 15px;
-            width: 100%;
-            max-width: 400px;
-            position: relative;
-            margin-bottom: 20px;
-        }
-        .info-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #63b3ed;
-            margin-bottom: 4px;
-        }
-        .info-desc {
-            font-size: 11px;
-            color: #cbd5e0;
-            line-height: 1.4;
-        }
-        .footer-supply {
-            font-size: 14px;
-            font-weight: bold;
-            color: #718096;
-            letter-spacing: 1.5px;
-            margin-top: auto;
-            padding-bottom: 10px;
-        }
+        body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 20px; margin: 0; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; margin: 15px auto; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
+        button { background: #3b82f6; color: white; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #64748b; cursor: not-allowed; }
+        .level-badge { font-size: 1.5em; font-weight: bold; color: #38bdf8; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <span>✕</span>
-        <span>Ast2 Mining</span>
-        <span>⋮</span>
+    <div class="card">
+        <div id="current-level-badge" class="level-badge">Level 1</div>
+        <p>Telegram ID: <span id="tg-id">-</span></p>
+        <h3>Balance: <span id="total-balance">0.00</span> AST2</h3>
     </div>
 
-    <!-- Logo AST2 -->
-    <div class="logo-container">
-        <img id="logoImg" src="https://i.ibb.co.com/placeholder-ast2.png" alt="Ast2 Token">
+    <div class="card">
+        <h3>Manual Withdrawal</h3>
+        <input type="text" id="withdraw-address" placeholder="Enter TON Wallet Address (min 40 chars)">
+        <input type="number" id="withdraw-amount" placeholder="Amount (Min 50 AST2)">
+        <button id="withdraw-btn" onclick="requestManualWithdrawal()">Withdraw AST2</button>
     </div>
-
-    <div class="status-box">
-        ⚡ AUTO MINING ACTIVE
-    </div>
-
-    <div class="menu-grid">
-        <div class="menu-btn">🛡️<br>MINIMUM<br>WITHDRAWAL</div>
-        <div class="menu-btn">⚡<br>AUTO MINING<br>ACTIVE 76/100</div>
-        <div class="menu-btn">↗<br>INSTANT<br>WITHDRAWAL</div>
-        <div class="menu-btn">🎁<br>FREE<br>FOR ALL</div>
-        <div class="menu-btn" style="background: #1f314f; border-color: #00ffcc;">
-            💎<br><span id="miniBalance" style="color:#00ffcc; font-weight:bold;">0</span><br>AST2/SEC
-        </div>
-        <div class="menu-btn">↗<br>REGULAR<br>WITHDRAWAL</div>
-    </div>
-
-    <div class="balance-card">
-        <div class="balance-title" id="userInfo">CHECKING TELEGRAM USER...</div>
-        <div class="balance-number" id="balance">0</div>
-        <div class="balance-token">$AST2</div>
-    </div>
-
-    <div class="info-box" id="infoBox">
-        <div class="info-title">ℹ️ AUTO MINING RUNNING!</div>
-        <div class="info-desc" id="dbStatus">Astrodog Astronaut Robot started mining $AST2 coins automatically (+2 AST2/sec)!</div>
-    </div>
-
-    <div class="footer-supply">500 MILLION COINS</div>
 
     <script>
-        // 1. Initialize Telegram WebApp
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+        // ==========================================
+        // KONFIGURASI SUPABASE
+        // ==========================================
+        const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_URL.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-        // Get Telegram User Data
-        let telegramUser = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {
-            id: "guest_12345",
-            first_name: "Guest User",
-            username: "guest"
+        // Struktur Perjalanan Level & Syarat Saldo Kumulatif
+        const levelsData = [
+            { level: 1, claim: 14.4, kumulatif: 0 },
+            { level: 2, claim: 15.12, kumulatif: 50 },
+            { level: 3, claim: 15.88, kumulatif: 140 },
+            { level: 4, claim: 16.67, kumulatif: 302 },
+            { level: 5, claim: 17.51, kumulatif: 594 },
+            { level: 6, claim: 18.38, kumulatif: 1119 },
+            { level: 7, claim: 19.3, kumulatif: 2065 },
+            { level: 8, claim: 20.27, kumulatif: 3768 },
+            { level: 9, claim: 21.28, kumulatif: 6833 }
+        ];
+
+        // State User Utama
+        let userState = {
+            telegramId: "",
+            username: "",
+            balance: 150, // Nilai default cadangan jika belum tersinkron
+            currentLevel: 1
         };
 
-        document.getElementById('userInfo').innerText = `USER: ${telegramUser.first_name.toUpperCase()}`;
-
-        // 2. Initialize Firebase
-        const firebaseConfig = {
-          apiKey: "AIzaSyCVm5Pfg8wTrwFw8tClXse3Qa4boJkQ7Ek",
-          authDomain: "ast2-database.firebaseapp.com",
-          databaseURL: "https://ast2-database-default-rtdb.asia-southeast1.firebasedatabase.app/",
-          projectId: "ast2-database",
-          storageBucket: "ast2-database.appspot.com",
-          messagingSenderId: "1057748242781",
-          appId: "1:1057748242781:web:83a08db2c828d1f3c298b4"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // 3. Check User in Firebase Based on Telegram ID
-        const userRef = db.ref('users/' + telegramUser.id);
-
-        let currentBalance = 0;
-        const balanceEl = document.getElementById('balance');
-        const miniBalanceEl = document.getElementById('miniBalance');
-        const dbStatusEl = document.getElementById('dbStatus');
-
-        userRef.once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                let userData = snapshot.val();
-                currentBalance = userData.balance || 0;
-                dbStatusEl.innerText = "User data found in Firebase. Resuming mining...";
-            } else {
-                currentBalance = 576; // Initial bonus balance for new users
-                userRef.set({
-                    id: telegramUser.id,
-                    username: telegramUser.username || "no_username",
-                    name: telegramUser.first_name,
-                    balance: currentBalance,
-                    joinedAt: new Date().toISOString()
-                });
-                dbStatusEl.innerText = "New user successfully registered to Firebase!";
+        // Inisialisasi saat halaman dimuat
+        window.onload = async function() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand();
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    userState.telegramId = tg.initDataUnsafe.user.id;
+                    userState.username = tg.initDataUnsafe.user.username || "Player";
+                }
+            }
+            
+            // Mode Testing di Browser Biasa (Tanpa Telegram)
+            if (!userState.telegramId) {
+                userState.telegramId = "8707403735"; 
+                userState.username = "TestUser";
             }
 
-            updateDisplay();
-            startMiningLoop();
-        }).catch((error) => {
-            dbStatusEl.innerText = "Failed to connect to database: " + error.message;
-            startMiningLoop();
-        });
+            document.getElementById("tg-id").innerText = userState.telegramId;
+            
+            // Sinkronisasi data user dengan database Supabase (tabel 'users')
+            await syncUserToSupabase();
+            renderUI();
+        };
 
-        function updateDisplay() {
-            balanceEl.innerText = Math.floor(currentBalance);
-            miniBalanceEl.innerText = Math.floor(currentBalance);
+        // Fungsi Sinkronisasi & Ambil Data User dari Supabase
+        async function syncUserToSupabase() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${userState.telegramId}`, {
+                    method: "GET",
+                    headers: {
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                const data = await res.json();
+
+                if (data && data.length > 0) {
+                    // Jika user sudah ada di database, ambil data terbarunya
+                    userState.balance = Number(data[0].balance);
+                    
+                    // Hitung ulang level secara otomatis berdasarkan saldo database
+                    for (let i = levelsData.length - 1; i >= 0; i--) {
+                        if (userState.balance >= levelsData[i].kumulatif) {
+                            userState.currentLevel = levelsData[i].level;
+                            break;
+                        }
+                    }
+                } else {
+                    // Jika user belum terdaftar, daftarkan otomatis ke tabel 'users'
+                    await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": SUPABASE_ANON_KEY,
+                            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                            "Prefer": "return=minimal"
+                        },
+                        body: JSON.stringify({
+                            telegram_id: Number(userState.telegramId),
+                            username: userState.username,
+                            balance: userState.balance,
+                            current_level: userState.currentLevel
+                        })
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal sinkronisasi user ke Supabase:", err);
+            }
         }
 
-        // 4. Auto Mining Loop & Periodic Firebase Sync
-        function startMiningLoop() {
-            setInterval(() => {
-                currentBalance += 2; // Increase by 2 AST2 per second
-                updateDisplay();
-            }, 1000);
-
-            // Save balance to Firebase every 10 seconds
-            setInterval(() => {
-                userRef.update({
-                    balance: currentBalance,
-                    lastActive: new Date().toISOString()
+        // Fungsi Memperbarui Perubahan Data (Saldo & Level) ke Supabase
+        async function updateUserDataInSupabase() {
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${userState.telegramId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "Prefer": "return=minimal"
+                    },
+                    body: JSON.stringify({
+                        balance: userState.balance,
+                        current_level: userState.currentLevel
+                    })
                 });
-            }, 10000);
+            } catch (err) {
+                console.error("Gagal update data user ke Supabase:", err);
+            }
+        }
+
+        // Fungsi Utama Proses Penarikan (Withdrawal)
+        async function requestManualWithdrawal() {
+            let address = document.getElementById("withdraw-address").value.trim();
+            let amount = parseFloat(document.getElementById("withdraw-amount").value);
+
+            if (!address || address.length < 40) {
+                alert("Please enter a valid TON wallet address!");
+                return;
+            }
+
+            if (isNaN(amount) || amount < 50) {
+                alert("Minimum withdrawal amount is 50 AST2");
+                return;
+            }
+
+            if (amount > userState.balance) {
+                alert("Insufficient AST2 balance!");
+                return;
+            }
+
+            let submitBtn = document.getElementById("withdraw-btn");
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting to Database...";
+
+            try {
+                // 1. Simpan riwayat transaksi ke tabel 'withdrawals' Supabase
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/withdrawals`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: Number(userState.telegramId),
+                        wallet_address: address,
+                        amount: amount,
+                        status: 'pending'
+                    })
+                });
+
+                if (response.ok || response.status === 201) {
+                    // 2. Kurangi saldo pengguna
+                    userState.balance -= amount;
+
+                    // 3. Hitung otomatis penurunan level berdasarkan sisa saldo terbaru
+                    for (let i = levelsData.length - 1; i >= 0; i--) {
+                        if (userState.balance >= levelsData[i].kumulatif) {
+                            userState.currentLevel = levelsData[i].level;
+                            break;
+                        }
+                    }
+
+                    // 4. Perbarui data profil user di tabel 'users' & render tampilan UI
+                    await updateUserDataInSupabase();
+                    renderUI();
+
+                    document.getElementById("withdraw-address").value = "";
+                    document.getElementById("withdraw-amount").value = "";
+                    
+                    alert("Withdrawal request has been submitted successfully!");
+                } else {
+                    const errData = await response.json();
+                    alert("Error: " + (errData.message || "Gagal memproses penarikan"));
+                }
+            } catch (err) {
+                alert("Koneksi error: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Withdraw AST2";
+            }
+        }
+
+        // Render Tampilan Antarmuka (UI)
+        function renderUI() {
+            document.getElementById("total-balance").innerText = userState.balance.toFixed(2);
+            document.getElementById("current-level-badge").innerText = `Level ${userState.currentLevel}`;
         }
     </script>
 </body>
