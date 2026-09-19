@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,49 +161,49 @@
     </div>
 
     <div class="status-box">
-        ⚡ MINING OTOMATIS AKTIF
+        ⚡ AUTO MINING ACTIVE
     </div>
 
     <div class="menu-grid">
         <div class="menu-btn">🛡️<br>MINIMUM<br>WITHDRAWAL</div>
-        <div class="menu-btn">⚡<br>AUTO MINING<br>AKTIF 76/100</div>
+        <div class="menu-btn">⚡<br>AUTO MINING<br>ACTIVE 76/100</div>
         <div class="menu-btn">↗<br>INSTANT<br>WITHDRAWAL</div>
         <div class="menu-btn">🎁<br>FREE<br>FOR ALL</div>
         <div class="menu-btn" style="background: #1f314f; border-color: #00ffcc;">
             💎<br><span id="miniBalance" style="color:#00ffcc; font-weight:bold;">0</span><br>AST2/SEC
         </div>
-        <div class="menu-btn">↗<br>WITHDRAWAL<br>REGULER</div>
+        <div class="menu-btn">↗<br>REGULAR<br>WITHDRAWAL</div>
     </div>
 
     <div class="balance-card">
-        <div class="balance-title" id="userInfo">MEMERIKSA USER TELEGRAM...</div>
+        <div class="balance-title" id="userInfo">CHECKING TELEGRAM USER...</div>
         <div class="balance-number" id="balance">0</div>
         <div class="balance-token">$AST2</div>
     </div>
 
     <div class="info-box" id="infoBox">
-        <div class="info-title">ℹ️ MINING OTOMATIS BERJALAN!</div>
-        <div class="info-desc" id="dbStatus">Robot Astronaut Asteroid mulai menambang koin $AST2 secara otomatis (+2 AST2/detik)!</div>
+        <div class="info-title">ℹ️ AUTO MINING RUNNING!</div>
+        <div class="info-desc" id="dbStatus">Astrodog Astronaut Robot started mining $AST2 coins automatically (+2 AST2/sec)!</div>
     </div>
 
     <div class="footer-supply">500 MILLION COINS</div>
 
     <script>
-        // 1. Inisialisasi Telegram WebApp
+        // 1. Initialize Telegram WebApp
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // Ambil Data User Telegram
+        // Get Telegram User Data
         let telegramUser = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {
             id: "guest_12345",
-            first_name: "Tamu Uji Coba",
+            first_name: "Guest User",
             username: "guest"
         };
 
         document.getElementById('userInfo').innerText = `USER: ${telegramUser.first_name.toUpperCase()}`;
 
-        // 2. Inisialisasi Firebase
+        // 2. Initialize Firebase
         const firebaseConfig = {
           apiKey: "AIzaSyCVm5Pfg8wTrwFw8tClXse3Qa4boJkQ7Ek",
           authDomain: "ast2-database.firebaseapp.com",
@@ -217,7 +217,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 3. Cek User di Firebase Berdasarkan ID Telegram
+        // 3. Check User in Firebase Based on Telegram ID
         const userRef = db.ref('users/' + telegramUser.id);
 
         let currentBalance = 0;
@@ -229,8 +229,9 @@
             if (snapshot.exists()) {
                 let userData = snapshot.val();
                 currentBalance = userData.balance || 0;
+                dbStatusEl.innerText = "User data found in Firebase. Resuming mining...";
             } else {
-                currentBalance = 576; // Saldo bonus awal user baru
+                currentBalance = 576; // Initial bonus balance for new users
                 userRef.set({
                     id: telegramUser.id,
                     username: telegramUser.username || "no_username",
@@ -238,12 +239,13 @@
                     balance: currentBalance,
                     joinedAt: new Date().toISOString()
                 });
+                dbStatusEl.innerText = "New user successfully registered to Firebase!";
             }
 
             updateDisplay();
             startMiningLoop();
         }).catch((error) => {
-            dbStatusEl.innerText = "Gagal memuat database: " + error.message;
+            dbStatusEl.innerText = "Failed to connect to database: " + error.message;
             startMiningLoop();
         });
 
@@ -252,14 +254,14 @@
             miniBalanceEl.innerText = Math.floor(currentBalance);
         }
 
-        // 4. Loop Penambangan Otomatis & Sinkronisasi ke Firebase
+        // 4. Auto Mining Loop & Periodic Firebase Sync
         function startMiningLoop() {
             setInterval(() => {
-                currentBalance += 2; // Bertambah 2 AST2 per detik
+                currentBalance += 2; // Increase by 2 AST2 per second
                 updateDisplay();
             }, 1000);
 
-            // Simpan saldo ke Firebase setiap 10 detik
+            // Save balance to Firebase every 10 seconds
             setInterval(() => {
                 userRef.update({
                     balance: currentBalance,
