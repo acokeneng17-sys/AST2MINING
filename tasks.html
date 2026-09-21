@@ -171,9 +171,9 @@
         };
 
         // 2. Konfigurasi Supabase Anda
-        const SUPABASE_URL = 'https://ast2geminites.supabase.co'; // Sesuaikan URL Supabase Anda jika berbeda
-        const SUPABASE_ANON_KEY = 'sb_secret_Ihh6oIzb35qLgqlsJY2ySg_kCL-jxzz'; 
-        const supabase = window.supabase.createClient(sb_publishable_3TvMSAvmPZlHLfuXv5Q1tg_vSfltqjD);
+        const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3TvMSAvmPZlHLfuXv5Q1tg_vSfltqjD';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // 3. Muat status tugas awal dari Database
         async function loadCompletedTasks() {
