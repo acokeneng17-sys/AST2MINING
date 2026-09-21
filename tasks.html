@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ast2 Mining - Social Tasks</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Supabase JS Library v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+        .header-title {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        .header-title h2 {
+            font-size: 22px;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        .header-title p {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        
+        /* Task Card Style */
+        .task-list {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .task-card {
+            background: linear-gradient(135deg, #131e30, #1c2d4a);
+            border: 1px solid #2d3748;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-info h4 {
+            font-size: 14px;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+        .task-info p {
+            font-size: 11px;
+            color: #a0aec0;
+        }
+        
+        /* Button States */
+        .task-btn {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .task-btn.completed {
+            background-color: #22543d;
+            color: #48bb78;
+            border: 1px solid #48bb78;
+            cursor: default;
+        }
+
+        /* Bottom Navbar Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            color: #64748b;
+            font-size: 11px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: #f3ba2f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">
+        <h2>Social Tasks</h2>
+        <p>Complete tasks to earn AST2 rewards online.</p>
+    </div>
+
+    <!-- Daftar Tugas (Bisa Anda tambah/ubah sesuai kebutuhan) -->
+    <div class="task-list" id="taskListContainer">
+        <!-- Task 1 -->
+        <div class="task-card" data-task-id="telegram_join" data-url="https://t.me/asteroid2shiba">
+            <div class="task-info">
+                <h4>Join Telegram Channel</h4>
+                <p>Reward: +50 AST2</p>
+            </div>
+            <button class="task-btn" onclick="handleTaskClick(this)">Start</button>
+        </div>
+
+        <!-- Task 2 -->
+        <div class="task-card" data-task-id="twitter_follow" data-url="https://x.com/Asteroid2Shiba">
+            <div class="task-info">
+                <h4>X (Twitter) Follow</h4>
+                <p>Reward: +50 AST2</p>
+            </div>
+            <button class="task-btn" onclick="handleTaskClick(this)">Start</button>
+        </div>
+
+        <!-- Task 3 -->
+        <div class="task-card" data-task-id="tiktok_follow" data-url="https://tiktok.com/@asteroid2shiba">
+            <div class="task-info">
+                <h4>TikTok Follow</h4>
+                <p>Reward: +50 AST2</p>
+            </div>
+            <button class="task-btn" onclick="handleTaskClick(this)">Start</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">💎<br>Mine</a>
+        <a href="tasks.html" class="nav-item active">📋<br>Tasks</a>
+        <a href="miners.html" class="nav-item">⚡<br>Miners</a>
+        <a href="friends.html" class="nav-item">👥<br>Friends</a>
+        <a href="profile.html" class="nav-item">👤<br>Profile</a>
+    </div>
+
+    <script>
+        // 1. Inisialisasi Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        const telegramUser = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {
+            id: 12345678, // ID dummy untuk testing di browser biasa
+            first_name: "TestUser"
+        };
+
+        // 2. Konfigurasi Supabase Anda
+        const SUPABASE_URL = 'https://ast2geminites.supabase.co'; // Sesuaikan URL Supabase Anda jika berbeda
+        const SUPABASE_ANON_KEY = 'MASUKKAN_ANON_KEY_ANDA_DISINI'; 
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 3. Muat status tugas awal dari Database
+        async function loadCompletedTasks() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_tasks')
+                    .select('task_id')
+                    .eq('user_id', telegramUser.id);
+
+                if (data) {
+                    data.forEach(item => {
+                        const card = document.querySelector(`[data-task-id="${item.task_id}"]`);
+                        if (card) markTaskAsCompletedUI(card);
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal memuat status tugas:", err);
+            }
+        }
+
+        // 4. Aktifkan Supabase Realtime (Live Sync tanpa Refresh)
+        function setupRealtimeSync() {
+            supabase
+                .channel('public:user_tasks')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'user_tasks',
+                    filter: `user_id=eq.${telegramUser.id}` 
+                }, (payload) => {
+                    console.log('Realtime update diterima:', payload);
+                    const newTask = payload.new;
+                    const card = document.querySelector(`[data-task-id="${newTask.task_id}"]`);
+                    if (card) {
+                        markTaskAsCompletedUI(card);
+                    }
+                })
+                .subscribe();
+        }
+
+        // 5. Logika ketika tombol task diklik
+        function handleTaskClick(button) {
+            const card = button.closest('.task-card');
+            const taskId = card.getAttribute('data-task-id');
+            const taskUrl = card.getAttribute('data-url');
+
+            if (button.classList.contains('completed')) return;
+
+            // Buka link sosial media tujuan
+            window.open(taskUrl, '_blank');
+
+            button.innerText = "Verifying...";
+            button.style.backgroundColor = "#d69e2e";
+
+            setTimeout(async () => {
+                const success = await saveTaskToDatabase(taskId);
+                if (!success) {
+                    button.innerText = "Start";
+                    button.style.backgroundColor = "#3182ce";
+                    alert("Gagal memverifikasi tugas. Silakan coba lagi.");
+                } else {
+                    // Jika sukses, realtime akan otomatis memperbarui UI atau dipanggil langsung
+                    markTaskAsCompletedUI(card);
+                }
+            }, 2500); // Jeda simulasi verifikasi
+        }
+
+        // 6. Simpan tugas ke Supabase
+        async function saveTaskToDatabase(taskId) {
+            try {
+                // Cek dulu apakah sudah ada di database agar tidak duplikat
+                const { data: existing } = await supabase
+                    .from('user_tasks')
+                    .select('*')
+                    .eq('user_id', telegramUser.id)
+                    .eq('task_id', taskId)
+                    .maybeSingle();
+
+                if (existing) return true;
+
+                const { error } = await supabase
+                    .from('user_tasks')
+                    .insert([{ user_id: telegramUser.id, task_id: taskId, status: 'completed' }]);
+
+                if (error) {
+                    console.error("Error saving task:", error.message);
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.error("Database error:", err);
+                return false;
+            }
+        }
+
+        // 7. Ubah Tampilan Kartu Tugas Menjadi Selesai
+        function markTaskAsCompletedUI(card) {
+            const btn = card.querySelector('.task-btn');
+            btn.innerText = "Completed ✓";
+            btn.classList.add('completed');
+        }
+
+        // Jalankan fungsi saat halaman dimuat
+        loadCompletedTasks();
+        setupRealtimeSync();
+    </script>
+</body>
+</html>
