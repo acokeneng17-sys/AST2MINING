@@ -99,6 +99,7 @@ async function api(path,opt={}){opt.headers={...(opt.headers||{}),...headers(!!o
 document.addEventListener("DOMContentLoaded",boot);
 
 async function boot(){
+ try { const auth=await fetch(API+"/auth-status",{headers:{"x-telegram-init-data":initData}}).then(r=>r.json()); if(!auth.ok){ document.getElementById("status").textContent="Telegram auth: "+auth.reason; console.warn("Telegram auth diagnostic",auth); } } catch(e){ console.warn("Auth diagnostic failed",e); }
  const u=tg?.initDataUnsafe?.user;
  if(u){document.getElementById("username").textContent=u.username?"@"+u.username:(u.first_name||"User");document.getElementById("tgid").textContent=u.id;document.getElementById("profileName").textContent=document.getElementById("username").textContent}
  if(!initData){showError("Buka aplikasi melalui Telegram Mini App agar akun dapat diverifikasi.");return}
