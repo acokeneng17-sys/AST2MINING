@@ -390,7 +390,11 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
 
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        try {
+            tg.expand();
+        } catch(e) {
+            console.log("Telegram WebApp expand not supported in browser.");
+        }
 
         const levelsData = [
             { level: 1, claim: 14.40, kumulatif: 0 },
@@ -440,8 +444,8 @@
             document.getElementById("profile-id").innerText = userTelegramId;
             document.getElementById("profile-username").innerText = userDisplayTag;
 
-            // Sinkronisasi otomatis ke tabel users Supabase
-            await syncUserToSupabase();
+            // Fitur Keamanan & Sinkronisasi Database Supabase
+            await loadUserDataFromSupabase();
 
             const botUsername = "ast2geminites_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
@@ -453,6 +457,31 @@
             renderTasksState();
             initPersistentTimer();
         });
+
+        // Fitur Keamanan: Ambil data dari server Supabase untuk mencegah manipulasi localStorage klien
+        async function loadUserDataFromSupabase() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${encodeURIComponent(userTelegramId)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        // Jika data ditemukan di server, sinkronkan ke state lokal demi keamanan validitas saldo
+                        userState.balance = parseFloat(data[0].balance) || userState.balance;
+                        userState.currentLevel = parseInt(data[0].current_level) || userState.currentLevel;
+                    } else {
+                        await syncUserToSupabase();
+                    }
+                }
+            } catch (error) {
+                console.error("Gagal memuat data aman dari database:", error);
+            }
+        }
 
         async function syncUserToSupabase() {
             try {
@@ -483,7 +512,7 @@
 
         function saveState() {
             localStorage.setItem('ast2_user_state', JSON.stringify(userState));
-            syncUserToSupabase(); // Sinkronisasi setiap kali state diperbarui
+            syncUserToSupabase(); 
         }
 
         function switchTab(tabId, element) {
@@ -494,7 +523,7 @@
         }
 
         function renderUI() {
-            let activeData = levelsData[userState.currentLevel - 1];
+            let activeData = levelsData[userState.currentLevel - 1] || levelsData[0];
             document.getElementById("total-balance").innerText = userState.balance.toFixed(2);
             document.getElementById("profile-balance").innerText = userState.balance.toFixed(2);
             document.getElementById("user-level-badge").innerText = `Level ${userState.currentLevel}`;
@@ -540,7 +569,7 @@
                 if (timeLeft <= 0) {
                     document.getElementById("timer-display").innerText = "00:00:00";
                     document.getElementById("mining-status-text").innerText = "Mining Session Ready to Claim!";
-                    let activeData = levelsData[userState.currentLevel - 1];
+                    let activeData = levelsData[userState.currentLevel - 1] || levelsData[0];
                     document.getElementById("claim-mining-btn").disabled = false;
                     document.getElementById("claim-mining-btn").innerText = `Claim ${activeData.claim.toFixed(2)} AST2`;
                     clearInterval(timerInterval);
@@ -559,7 +588,7 @@
         }
 
         function claimMining() {
-            let activeData = levelsData[userState.currentLevel - 1];
+            let activeData = levelsData[userState.currentLevel - 1] || levelsData[0];
             userState.balance += activeData.claim;
             userState.targetTimestamp = Date.now() + SESSION_DURATION;
             saveState();
@@ -573,7 +602,7 @@
 
         function upgradeLevel(targetLevel) {
             let targetData = levelsData[targetLevel - 1];
-            if (userState.balance >= targetData.kumulatif) {
+            if (targetData && userState.balance >= targetData.kumulatif) {
                 userState.currentLevel = targetLevel;
                 saveState();
                 renderUI();
