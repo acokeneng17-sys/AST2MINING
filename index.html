@@ -772,12 +772,26 @@
             }
         }
 
-        function copyInviteLink() {
-            const inviteInput = document.getElementById("invite-link");
-            inviteInput.select();
-            navigator.clipboard.writeText(inviteInput.value);
-            alert("Invite link copied to clipboard!");
+        function shareInviteLink() {
+            const inviteUrl = document.getElementById("invite-link").value;
+            const text = encodeURIComponent("🚀 Join Asteroid2Shiba Mining Community, mine AST2 tokens, and start earning today!");
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${text}`;
+            window.open(shareUrl, '_blank');
+        }
+
+        function renderFriendsList() {
+            const listUl = document.getElementById("friend-list-ul");
+            const countEl = document.getElementById("friend-count");
+            
+            countEl.innerText = userState.friends.length;
+            if (userState.friends.length > 0) {
+                listUl.innerHTML = "";
+                userState.friends.forEach(friend => {userState.friends.forEach(friend => {
+                    listUl.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${friend}</li>`;
+                });
+            }
         }
     </script>
 </body>
 </html>
+                    
