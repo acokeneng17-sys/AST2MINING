@@ -64,6 +64,8 @@ h2{margin-bottom:5px}.row{display:flex;justify-content:space-between;align-items
 
 <section id="tab-profile" class="content">
 <h2>User Profile</h2><p class="muted" style="margin-bottom:15px">Account information from the AST2 backend.</p>
+<button id="connectWalletBtn" class="btn" style="margin-bottom:12px" onclick="connectWallet()">Connect TON Wallet</button>
+<div id="walletMsg" class="notice">Connect your TON wallet to read your AST2 holding and calculate your mining level.</div>
 <div class="item" style="display:block;line-height:1.9">
 <p><b>Telegram ID:</b> <span id="tgid">-</span></p>
 <p><b>Username:</b> <span id="profileName">-</span></p>
@@ -113,6 +115,18 @@ async function boot(){
  }catch(e){console.error(e);showError(e.message)}
 }
 
+async function connectWallet(){
+ const address=prompt("Masukkan alamat TON wallet Anda (UQ... atau EQ...):");
+ if(!address) return;
+ if(!/^[UE][Qk][A-Za-z0-9_-]{46,60}$/.test(address)){alert("Format alamat TON tidak valid.");return}
+ try{
+   await api("/user",{method:"POST",body:JSON.stringify({wallet_address:address})});
+   document.getElementById("walletMsg").textContent="Wallet tersimpan. Memuat saldo AST2 dari TON...";
+   await loadMining(); render();
+   document.getElementById("walletMsg").textContent="Wallet terhubung: "+address.slice(0,6)+"..."+address.slice(-6);
+   document.getElementById("connectWalletBtn").textContent="Update TON Wallet";
+ }catch(e){alert(e.message)}
+}
 async function loadMining(){
  const d=await api("/mining");
  state={...state,...d};
