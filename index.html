@@ -15,6 +15,7 @@
             --accent-glow: rgba(72, 202, 228, 0.3);
             --text-main: #ffffff;
             --text-muted: #8a9bb8;
+            --success-color: #27ae60;
         }
 
         * {
@@ -129,6 +130,11 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 15px var(--accent-glow);
+            transition: 0.2s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
         }
 
         .btn-primary:disabled {
@@ -147,6 +153,7 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 12px;
+            transition: 0.2s;
         }
 
         .bottom-nav {
@@ -222,14 +229,23 @@
             color: var(--text-muted);
             margin-bottom: 15px;
         }
+
+        .badge-tag {
+            background: rgba(72,202,228,0.1); 
+            color: var(--accent-color); 
+            padding: 5px 10px; 
+            border-radius: 8px; 
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         
+        <!-- HEADER -->
         <header class="app-header">
             <div class="user-status">
-                <span id="user-level-badge" style="background: rgba(72,202,228,0.1); color: var(--accent-color); padding: 5px 10px; border-radius: 8px; font-size: 12px;">Level 1</span>
+                <span id="user-level-badge" class="badge-tag">Level 1</span>
             </div>
             <div class="user-pill">
                 <i class="fa-solid fa-circle-user"></i>
@@ -237,11 +253,12 @@
             </div>
         </header>
 
+        <!-- TAB 1: MINE -->
         <section id="tab-mine" class="tab-content active">
             <div class="assets-box">
                 <p class="assets-title">TOTAL AST2 BALANCE</p>
                 <h2><span id="total-balance">0.00</span> AST2</h2>
-                <p style="font-size: 11px; color: var(--accent-color);">Speed: <span id="speed-per-claim">14.40</span> AST2 / Session (8 Hours)</p>
+                <p style="font-size: 11px; color: var(--accent-color);">Mining Speed: <span id="speed-per-claim">14.40</span> AST2 / Session (8 Hours)</p>
             </div>
 
             <div class="mining-card">
@@ -254,11 +271,12 @@
             </div>
         </section>
 
+        <!-- TAB 2: TASKS -->
         <section id="tab-tasks" class="tab-content">
-            <h2>Social Tasks</h2>
-            <p class="subtitle">Complete tasks to earn AST2 rewards.</p>
+            <h2>Community Tasks</h2>
+            <p class="subtitle">Complete social tasks and boost your AST2 balance securely.</p>
             
-            <div class="task-item" id="task-x-engage">
+            <div class="task-item">
                 <div class="task-info">
                     <i class="fa-brands fa-x-twitter"></i>
                     <div>
@@ -269,97 +287,101 @@
                 <button class="btn-secondary" id="btn-task-x-engage" onclick="startTask('x-engage', 'https://x.com/Asteroid2Shiba/status/2100268659210076220', 3)">Start</button>
             </div>
 
-            <div class="task-item" id="task-tiktok">
+            <div class="task-item">
                 <div class="task-info">
                     <i class="fa-brands fa-tiktok"></i>
                     <div>
-                        <h4>TikTok Follow</h4>
-                        <p style="font-size:11px; color:var(--text-muted);">tiktok.com/@asteroid2shiba</p>
+                        <h4>Follow TikTok Account</h4>
+                        <p style="font-size:11px; color:var(--text-muted);">Reward: +3 AST2</p>
                     </div>
                 </div>
                 <button class="btn-secondary" id="btn-task-tiktok" onclick="startTask('tiktok', 'https://tiktok.com/@asteroid2shiba', 3)">Start</button>
             </div>
 
-            <div class="task-item" id="task-x-follow">
+            <div class="task-item">
                 <div class="task-info">
                     <i class="fa-brands fa-x-twitter"></i>
                     <div>
-                        <h4>X (Twitter) Follow</h4>
-                        <p style="font-size:11px; color:var(--text-muted);">x.com/Asteroid2Shiba</p>
+                        <h4>Follow X (Twitter) Channel</h4>
+                        <p style="font-size:11px; color:var(--text-muted);">Reward: +3 AST2</p>
                     </div>
                 </div>
                 <button class="btn-secondary" id="btn-task-x-follow" onclick="startTask('x-follow', 'https://x.com/Asteroid2Shiba', 3)">Start</button>
             </div>
 
-            <div class="task-item" id="task-tg">
+            <div class="task-item">
                 <div class="task-info">
                     <i class="fa-brands fa-telegram"></i>
                     <div>
-                        <h4>Join Telegram Channel</h4>
-                        <p style="font-size:11px; color:var(--text-muted);">t.me/asteroid2shiba</p>
+                        <h4>Join Telegram Community</h4>
+                        <p style="font-size:11px; color:var(--text-muted);">Reward: +3 AST2</p>
                     </div>
                 </div>
                 <button class="btn-secondary" id="btn-task-tg" onclick="startTask('tg', 'https://t.me/asteroid2shiba', 3)">Start</button>
             </div>
 
-            <div class="task-item" id="task-yt">
+            <div class="task-item">
                 <div class="task-info">
                     <i class="fa-brands fa-youtube"></i>
                     <div>
-                        <h4>YouTube Subscribe</h4>
-                        <p style="font-size:11px; color:var(--text-muted);">youtube.com/@asteroid2shiba</p>
+                        <h4>Subscribe YouTube Channel</h4>
+                        <p style="font-size:11px; color:var(--text-muted);">Reward: +3 AST2</p>
                     </div>
                 </div>
                 <button class="btn-secondary" id="btn-task-yt" onclick="startTask('yt', 'https://www.youtube.com/@asteroid2shiba', 3)">Start</button>
             </div>
         </section>
 
+        <!-- TAB 3: MINERS / LEVEL JOURNEY -->
         <section id="tab-miners" class="tab-content">
             <h2>Level Journey</h2>
-            <p class="subtitle">Upgrade your level to increase mining rewards</p>
+            <p class="subtitle">Upgrade your mining rank to gain higher session rewards.</p>
             <div id="levels-container"></div>
         </section>
 
+        <!-- TAB 4: FRIENDS / REFERRAL -->
         <section id="tab-friends" class="tab-content">
             <h2>Invite Friends</h2>
-            <p class="subtitle">Share your link and invite friends to join Asteroid2Shiba.</p>
+            <p class="subtitle">Share your unique referral link to build your mining community.</p>
             <div class="invite-box">
                 <input type="text" id="invite-link" readonly>
                 <button class="btn-secondary" onclick="copyInviteLink()">Copy</button>
             </div>
-            <button class="btn-primary" style="margin-top: 10px; font-size: 14px; padding: 12px;" onclick="shareInviteLink()"><i class="fa-brands fa-telegram"></i> Share to Telegram Friends</button>
+            <button class="btn-primary" style="margin-top: 5px; font-size: 14px; padding: 12px;" onclick="shareInviteLink()"><i class="fa-brands fa-telegram"></i> Share to Telegram</button>
             <h3 style="margin-top: 25px; font-size: 14px;">Invited Friends (<span id="friend-count">0</span>)</h3>
             <ul id="friend-list-ul" style="list-style: none; margin-top: 10px; font-size: 13px;">
-                <p style="color: var(--text-muted); font-size: 12px;">No friends invited yet. Start sharing your link!</p>
+                <p style="color: var(--text-muted); font-size: 12px;">No friends invited yet. Start sharing!</p>
             </ul>
         </section>
 
+        <!-- TAB 5: PROFILE & WITHDRAWAL -->
         <section id="tab-profile" class="tab-content">
             <h2>User Profile</h2>
-            <p class="subtitle">Account Security & Details</p>
+            <p class="subtitle">Account Credentials & Token Withdrawal</p>
             <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                 <p><strong>Telegram ID:</strong> <span id="profile-id">-</span></p>
-                <p><strong>Telegram Username:</strong> <span id="profile-username" style="color: var(--accent-color);">-</span></p>
-                <p><strong>Current Level:</strong> <span id="profile-level-text">Level 1</span></p>
-                <p><strong>Total Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
+                <p><strong>Username:</strong> <span id="profile-username" style="color: var(--accent-color);">-</span></p>
+                <p><strong>Active Rank:</strong> <span id="profile-level-text">Level 1</span></p>
+                <p><strong>Available Balance:</strong> <span id="profile-balance">0.00</span> AST2</p>
             </div>
 
             <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
                 <h4>Withdraw AST2 Token</h4>
                 <p style="font-size: 11px; color: var(--text-muted);">Min: 500 AST2 | Treasury: EQCO-...0vufNx</p>
                 
-                <input type="text" id="withdraw-address" placeholder="Enter TON Wallet Address (UQ... / EQ...)" style="width: 100%; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 12px;">
+                <input type="text" id="withdraw-address" placeholder="TON Wallet Address (UQ... / EQ...)" style="width: 100%; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 12px;">
                 
                 <input type="number" id="withdraw-amount" placeholder="Amount AST2 (Min 500)" style="width: 100%; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 12px;">
                 
                 <button class="btn-primary" id="withdraw-submit-btn" onclick="requestManualWithdrawal()">Submit Withdrawal</button>
                 
                 <p style="font-size: 10px; color: var(--text-muted); text-align: center; line-height: 1.4; width: 100%; margin-top: 5px;">
-                    ⚠️ Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.
+                    ⚠️ Withdrawal processed within 24 hours. Limited to 1 transaction per 24 hours.
                 </p>
             </div>
         </section>
 
+        <!-- BOTTOM NAVIGATION -->
         <nav class="bottom-nav">
             <button class="nav-item active" onclick="switchTab('mine', this)">
                 <i class="fa-solid fa-gem"></i>
@@ -385,6 +407,7 @@
 
     </div>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
@@ -444,10 +467,9 @@
             document.getElementById("profile-id").innerText = userTelegramId;
             document.getElementById("profile-username").innerText = userDisplayTag;
 
-            // Fitur Keamanan & Sinkronisasi Database Supabase
             await loadUserDataFromSupabase();
 
-            const botUsername = "ast2geminites_bot"; 
+            const botUsername = "ast2komunitasmining_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
             document.getElementById("invite-link").value = refLink;
 
@@ -458,7 +480,6 @@
             initPersistentTimer();
         });
 
-        // Fitur Keamanan: Ambil data dari server Supabase untuk mencegah manipulasi localStorage klien
         async function loadUserDataFromSupabase() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${encodeURIComponent(userTelegramId)}`, {
@@ -471,7 +492,6 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.length > 0) {
-                        // Jika data ditemukan di server, sinkronkan ke state lokal demi keamanan validitas saldo
                         userState.balance = parseFloat(data[0].balance) || userState.balance;
                         userState.currentLevel = parseInt(data[0].current_level) || userState.currentLevel;
                     } else {
@@ -479,13 +499,13 @@
                     }
                 }
             } catch (error) {
-                console.error("Gagal memuat data aman dari database:", error);
+                console.error("Gagal memuat data dari database:", error);
             }
         }
 
         async function syncUserToSupabase() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+                await fetch(`${SUPABASE_URL}/rest/v1/users`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -500,13 +520,8 @@
                         current_level: userState.currentLevel
                     })
                 });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    console.error("Gagal sinkronisasi user:", err);
-                }
             } catch (error) {
-                console.error("Kesalahan jaringan saat sinkronisasi:", error);
+                console.error("Kesalahan sinkronisasi user:", error);
             }
         }
 
@@ -542,10 +557,10 @@
                     <div class="card-level" style="border: ${isCurrent ? '1px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.03)'}">
                         <div>
                             <h4>Level ${lvl.level}</h4>
-                            <p style="font-size: 11px; color: var(--text-muted);">Claim: ${lvl.claim} AST2 | Cumulative: ${lvl.kumulatif.toLocaleString()} AST2</p>
+                            <p style="font-size: 11px; color: var(--text-muted);">Claim: ${lvl.claim} AST2 | Req: ${lvl.kumulatif.toLocaleString()} AST2</p>
                         </div>
                         <div>
-                            ${isCurrent ? '<span style="color: #4cd137; font-size: 12px; font-weight:bold;">ACTIVE</span>' : 
+                            ${isCurrent ? '<span style="color: var(--success-color); font-size: 12px; font-weight:bold;">ACTIVE</span>' : 
                               (canUpgrade ? `<button class="btn-secondary" style="background:var(--accent-color); color:#000;" onclick="upgradeLevel(${lvl.level})">Upgrade</button>` : '<span style="font-size:11px; color:var(--text-muted);">Locked</span>')}
                         </div>
                     </div>
@@ -618,7 +633,7 @@
             let amount = parseFloat(document.getElementById("withdraw-amount").value);
             
             if (!address || address.length < 40) {
-                alert("Please enter a valid TON/Gram wallet address!");
+                alert("Please enter a valid TON wallet address!");
                 return;
             }
 
@@ -635,11 +650,6 @@
                 return;
             }
 
-            if (amount > 1000000) {
-                alert("Maximum withdrawal amount is 1,000,000 AST2 per transaction!");
-                return;
-            }
-            
             if (amount > userState.balance) {
                 alert("Insufficient AST2 balance!");
                 return;
@@ -647,7 +657,7 @@
 
             let submitBtn = document.getElementById("withdraw-submit-btn");
             submitBtn.disabled = true;
-            submitBtn.innerText = "Submitting to Database...";
+            submitBtn.innerText = "Submitting...";
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/withdrawals`, {
@@ -681,11 +691,9 @@
                     document.getElementById("withdraw-address").value = "";
                     document.getElementById("withdraw-amount").value = "";
                     
-                    alert("Withdrawal is being processed, please be patient. The process may take 24 hours or even longer.");
+                    alert("Withdrawal submitted successfully! Please wait up to 24 hours.");
                 } else {
-                    const err = await response.json();
-                    console.error("Supabase Error Details:", err);
-                    alert("Error: " + (err.message || "Failed to save withdrawal to database."));
+                    alert("Failed to submit withdrawal request.");
                 }
             } catch (error) {
                 console.error("Network Error:", error);
@@ -700,7 +708,7 @@
             const button = document.getElementById(`btn-task-${taskId}`);
             window.open(url, '_blank');
 
-            let remaining = 15;
+            let remaining = 10;
             button.disabled = true;
             button.style.opacity = "0.6";
             button.innerText = `Checking (${remaining}s)...`;
@@ -744,7 +752,7 @@
                 if (button) {
                     button.innerText = "Completed ✓";
                     button.disabled = true;
-                    button.style.background = "#27ae60";
+                    button.style.background = "var(--success-color)";
                     button.style.color = "white";
                     button.style.opacity = "1";
                     button.removeAttribute("onclick");
@@ -759,6 +767,14 @@
             window.open(shareUrl, '_blank');
         }
 
+        function copyInviteLink() {
+            const inviteInput = document.getElementById("invite-link");
+            inviteInput.select();
+            inviteInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(inviteInput.value);
+            alert("Invite link copied to clipboard!");
+        }
+
         function renderFriendsList() {
             const listUl = document.getElementById("friend-list-ul");
             const countEl = document.getElementById("friend-count");
@@ -767,26 +783,6 @@
             if (userState.friends.length > 0) {
                 listUl.innerHTML = "";
                 userState.friends.forEach(friend => {
-                    listUl.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;"><span>${friend}</span> <span style="color: #2ecc71;">Active (+50 AST2)</span></li>`;
-                });
-            }
-        }
-
-        function shareInviteLink() {
-            const inviteUrl = document.getElementById("invite-link").value;
-            const text = encodeURIComponent("🚀 Join Asteroid2Shiba Mining Community, mine AST2 tokens, and start earning today!");
-            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${text}`;
-            window.open(shareUrl, '_blank');
-        }
-
-        function renderFriendsList() {
-            const listUl = document.getElementById("friend-list-ul");
-            const countEl = document.getElementById("friend-count");
-            
-            countEl.innerText = userState.friends.length;
-            if (userState.friends.length > 0) {
-                listUl.innerHTML = "";
-                userState.friends.forEach(friend => {userState.friends.forEach(friend => {
                     listUl.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${friend}</li>`;
                 });
             }
@@ -794,4 +790,3 @@
     </script>
 </body>
 </html>
-                    
