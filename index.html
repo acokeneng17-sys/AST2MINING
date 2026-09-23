@@ -7,6 +7,29 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Firebase SDK dari CDN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWI1cjtPNNzGL7oakZb94vq16mq8rpCyY",
+            authDomain: "asteroid2shiba-bdc15.firebaseapp.com",
+            projectId: "asteroid2shiba-bdc15",
+            storageBucket: "asteroid2shiba-bdc15.firebasestorage.app",
+            messagingSenderId: "676398435271",
+            appId: "1:676398435271:web:8ec07276b6a346030667e2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Ekspor ke global agar bisa dipanggil oleh fungsi lain
+        window.db = db;
+        window.fbModules = { doc, setDoc, getDoc, updateDoc, collection, addDoc };
+        console.log("Firebase Terhubung!");
+    </script>
+
     <style>
         :root {
             --bg-color: #060d16;
@@ -407,11 +430,8 @@
 
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- MAIN APP SCRIPT -->
     <script>
-        const SUPABASE_URL = 'https://gzkbawpoditpmjknuqpl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6a2Jhd3BvZGl0cG1qa251cXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU4MDYsImV4cCI6MjEwNDk2MTgwNn0.PcfcgZKGXbK2Iu4AL2HT_eNDEGs16qtnWF_EznWe9tg';
-
         const tg = window.Telegram.WebApp;
         try {
             tg.expand();
@@ -467,7 +487,7 @@
             document.getElementById("profile-id").innerText = userTelegramId;
             document.getElementById("profile-username").innerText = userDisplayTag;
 
-            await loadUserDataFromSupabase();
+            await loadUserDataFromFirebase();
 
             const botUsername = "ast2komunitasmining_bot"; 
             const refLink = `https://t.me/${botUsername}?start=ref_${userTelegramId}`;
@@ -480,54 +500,47 @@
             initPersistentTimer();
         });
 
-        async function loadUserDataFromSupabase() {
+        async function loadUserDataFromFirebase() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${encodeURIComponent(userTelegramId)}`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                    }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.length > 0) {
-                        userState.balance = parseFloat(data[0].balance) || userState.balance;
-                        userState.currentLevel = parseInt(data[0].current_level) || userState.currentLevel;
-                    } else {
-                        await syncUserToSupabase();
-                    }
+                if (!window.db) return;
+                const { doc, getDoc } = window.fbModules;
+                const userRef = doc(window.db, "users", String(userTelegramId));
+                const docSnap = await getDoc(userRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    userState.balance = parseFloat(data.balance) || userState.balance;
+                    userState.currentLevel = parseInt(data.current_level) || userState.currentLevel;
+                    if (data.completedTasks) userState.completedTasks = data.completedTasks;
+                } else {
+                    await syncUserToFirebase();
                 }
             } catch (error) {
-                console.error("Gagal memuat data dari database:", error);
+                console.error("Gagal memuat data dari Firebase:", error);
             }
         }
 
-        async function syncUserToSupabase() {
+        async function syncUserToFirebase() {
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Prefer': 'resolution=merge-duplicates'
-                    },
-                    body: JSON.stringify({
-                        telegram_id: parseInt(userTelegramId),
-                        username: userDisplayTag,
-                        balance: userState.balance,
-                        current_level: userState.currentLevel
-                    })
-                });
+                if (!window.db) return;
+                const { doc, setDoc } = window.fbModules;
+                const userRef = doc(window.db, "users", String(userTelegramId));
+                await setDoc(userRef, {
+                    telegram_id: String(userTelegramId),
+                    username: userDisplayTag,
+                    balance: userState.balance,
+                    current_level: userState.currentLevel,
+                    completedTasks: userState.completedTasks || [],
+                    updated_at: new Date().toISOString()
+                }, { merge: true });
             } catch (error) {
-                console.error("Kesalahan sinkronisasi user:", error);
+                console.error("Kesalahan sinkronisasi ke Firebase:", error);
             }
         }
 
         function saveState() {
             localStorage.setItem('ast2_user_state', JSON.stringify(userState));
-            syncUserToSupabase(); 
+            syncUserToFirebase(); 
         }
 
         function switchTab(tabId, element) {
@@ -660,44 +673,36 @@
             submitBtn.innerText = "Submitting...";
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/withdrawals`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({
+                if (window.db) {
+                    const { collection, addDoc } = window.fbModules;
+                    await addDoc(collection(window.db, "withdrawals"), {
                         telegram_id: String(userTelegramId),
+                        username: userDisplayTag,
                         wallet_address: address,
                         amount: amount,
-                        status: 'pending'
-                    })
-                });
-
-                if (response.ok) {
-                    userState.balance -= amount;
-                    for (let i = levelsData.length - 1; i >= 0; i--) {
-                        if (userState.balance >= levelsData[i].kumulatif) {
-                            userState.currentLevel = levelsData[i].level;
-                            break;
-                        }
-                    }
-                    userState.lastWithdrawTime = now;
-                    saveState();
-                    renderUI();
-                    
-                    document.getElementById("withdraw-address").value = "";
-                    document.getElementById("withdraw-amount").value = "";
-                    
-                    alert("Withdrawal submitted successfully! Please wait up to 24 hours.");
-                } else {
-                    alert("Failed to submit withdrawal request.");
+                        status: 'pending',
+                        created_at: new Date().toISOString()
+                    });
                 }
+
+                userState.balance -= amount;
+                for (let i = levelsData.length - 1; i >= 0; i--) {
+                    if (userState.balance >= levelsData[i].kumulatif) {
+                        userState.currentLevel = levelsData[i].level;
+                        break;
+                    }
+                }
+                userState.lastWithdrawTime = now;
+                saveState();
+                renderUI();
+                
+                document.getElementById("withdraw-address").value = "";
+                document.getElementById("withdraw-amount").value = "";
+                
+                alert("Withdrawal submitted successfully to Firebase! Please wait up to 24 hours.");
             } catch (error) {
-                console.error("Network Error:", error);
-                alert("Network error connecting to database.");
+                console.error("Firebase Error:", error);
+                alert("Failed to submit withdrawal request.");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Withdrawal";
